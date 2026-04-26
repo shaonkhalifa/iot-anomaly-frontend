@@ -378,6 +378,29 @@ body {
 .compare-label { font-size: 0.78rem; color: var(--text-muted); }
 .compare-val   { font-size: 0.85rem; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
 
+/* ── Comparison Header ───────────────────────────────────────── */
+.compare-summary-header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.compare-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+.compare-title svg {
+  color: var(--blue);
+}
+
+/* ── Active Filter Card ──────────────────────────────────────── */
+.stat-card.active-filter {
+  border-color: var(--blue);
+  box-shadow: 0 0 12px rgba(59,130,246,0.25);
+}
+
 /* ── Empty State ──────────────────────────────────────────────── */
 .empty-state {
   text-align: center; padding: 4rem 2rem;

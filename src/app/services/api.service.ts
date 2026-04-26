@@ -51,4 +51,14 @@ export class ApiService {
       data,
     });
   }
+
+  /** Compare all 3 models on uploaded CSV/Excel file */
+  compareUpload(file: File): Observable<CompareResponse> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<CompareResponse>(
+      `${this.baseUrl}/predict/upload/compare`,
+      form
+    );
+  }
 }

@@ -23,6 +23,8 @@ Chart.register(...registerables);
 })
 export class AppComponent implements OnInit {
   // ── State ──────────────────────────────────────────────────────────────
+  uploadMode: 'file' | 'json' = 'file';
+  jsonInputText: string = '';
   selectedFile: File | null = null;
   selectedModel: string = 'isolation_forest';
   isDragOver = false;
@@ -34,6 +36,7 @@ export class AppComponent implements OnInit {
   predictions: PredictionResult[] = [];
   summary: PredictionSummary | null = null;
   compareData: CompareResponse | null = null;
+  comparisonEntries: [string, any][] = [];
   availableModels: ModelInfo[] = [
     { id: 'isolation_forest', name: 'Isolation Forest', ready: true },
     { id: 'one_class_svm',    name: 'One-Class SVM',   ready: true },
@@ -41,6 +44,7 @@ export class AppComponent implements OnInit {
   ];
 
   activeTab: 'results' | 'chart' | 'compare' = 'chart';
+  currentFilter: 'all' | 'normal' | 'anomaly' = 'all';
   private timeChart: Chart | null = null;
   private compareChart: Chart | null = null;
 
@@ -86,8 +90,9 @@ export class AppComponent implements OnInit {
   }
 
   setFile(file: File) {
-    if (!file.name.endsWith('.csv')) {
-      this.errorMsg = 'Please upload a CSV file.';
+    const name = file.name.toLowerCase();
+    if (!name.endsWith('.csv') && !name.endsWith('.xlsx') && !name.endsWith('.xls')) {
+      this.errorMsg = 'Please upload a CSV or Excel file.';
       return;
     }
     this.selectedFile = file;
@@ -114,6 +119,7 @@ export class AppComponent implements OnInit {
     this.errorMsg = null;
     this.predictions = [];
     this.summary = null;
+    this.compareData = null;
     this.destroyCharts();
 
     this.api.predictUpload(this.selectedModel, this.selectedFile).subscribe({
@@ -133,38 +139,105 @@ export class AppComponent implements OnInit {
 
   // ── Compare all models ─────────────────────────────────────────────────
   compareAll() {
-    if (!this.selectedFile) { this.errorMsg = 'Please select a CSV file first.'; return; }
     this.isComparing = true;
     this.errorMsg = null;
+    this.predictions = [];
+    this.summary = null;
+    this.destroyCharts();
 
-    // Build minimal sensor data from file by first analysing with IF then comparing
-    this.api.predictUpload('isolation_forest', this.selectedFile).subscribe({
+    if (this.uploadMode === 'file') {
+      if (!this.selectedFile) {
+        this.errorMsg = 'Please select a CSV file first.';
+        this.isComparing = false;
+        return;
+      }
+      this.api.compareUpload(this.selectedFile).subscribe({
+        next: (cmp) => {
+          this.compareData = cmp;
+          this.comparisonEntries = Object.entries(cmp.comparison);
+          this.isComparing = false;
+          this.activeTab = 'compare';
+          setTimeout(() => this.renderCompareChart(), 50);
+        },
+        error: (err) => {
+          this.isComparing = false;
+          this.errorMsg = err.error?.error ?? 'Comparison failed.';
+        },
+      });
+    } else {
+      let parsedData: any[];
+      try {
+        parsedData = JSON.parse(this.jsonInputText);
+        if (!Array.isArray(parsedData)) parsedData = [parsedData];
+      } catch (e) {
+        this.errorMsg = 'Invalid JSON format.';
+        this.isComparing = false;
+        return;
+      }
+      this.api.compare(parsedData).subscribe({
+        next: (cmp) => {
+          this.compareData = cmp;
+          this.comparisonEntries = Object.entries(cmp.comparison);
+          this.isComparing = false;
+          this.activeTab = 'compare';
+          setTimeout(() => this.renderCompareChart(), 50);
+        },
+        error: (err) => {
+          this.isComparing = false;
+          this.errorMsg = err.error?.error ?? 'Comparison failed.';
+        },
+      });
+    }
+  }
+
+  // ── JSON Handling ──────────────────────────────────────────────────────
+  analyzeJson() {
+    if (!this.jsonInputText.trim()) {
+      this.errorMsg = 'Please paste some JSON data first.';
+      return;
+    }
+    
+    let parsedData: any[];
+    try {
+      parsedData = JSON.parse(this.jsonInputText);
+      if (!Array.isArray(parsedData)) parsedData = [parsedData];
+    } catch (e) {
+      this.errorMsg = 'Invalid JSON format.';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMsg = null;
+    this.predictions = [];
+    this.summary = null;
+    this.compareData = null;
+    this.destroyCharts();
+
+    this.api.predict(this.selectedModel, parsedData).subscribe({
       next: (res) => {
-        const data = res.predictions.map((p) => ({
-          temperature: p.temperature ?? 0,
-          humidity: p.humidity ?? 0,
-          timestamp: p.timestamp,
-          sensorId: p.sensorId,
-        }));
-
-        this.api.compare(data).subscribe({
-          next: (cmp) => {
-            this.compareData = cmp;
-            this.isComparing = false;
-            this.activeTab = 'compare';
-            setTimeout(() => this.renderCompareChart(), 50);
-          },
-          error: (e) => {
-            this.isComparing = false;
-            this.errorMsg = e.error?.error ?? 'Comparison failed.';
-          },
-        });
+        this.predictions = res.predictions;
+        this.summary = res.summary;
+        this.isLoading = false;
+        this.activeTab = 'chart';
+        setTimeout(() => this.renderTimeChart(), 50);
       },
       error: (err) => {
-        this.isComparing = false;
-        this.errorMsg = err.error?.error ?? 'Initial prediction for comparison failed.';
+        this.isLoading = false;
+        this.errorMsg = err.error?.error ?? 'JSON Prediction failed. Check your data format.';
       },
     });
+  }
+
+  // ── Sensor Type Mapping ────────────────────────────────────────────────
+  getSensorTypeName(logTypeId: number | undefined | null, logSubTypeId: number | undefined | null): string {
+    if (logTypeId == null || logTypeId === 0) return 'General Sensor';
+    if (logTypeId === 1) return 'External Alarm';
+    if (logTypeId === 2) return 'DC Energy Reading';
+    if (logTypeId === 3) return 'AC Energy Reading';
+    if (logTypeId === 4) return 'Temperature Reading';
+    if (logTypeId === 5) return 'Humidity Reading';
+    if (logTypeId === 6) return 'Power Reading';
+    return `Type ${logTypeId}`;
   }
 
   // ── Charts ─────────────────────────────────────────────────────────────
@@ -176,8 +249,8 @@ export class AppComponent implements OnInit {
     const normal  = this.predictions.filter((p) => p.label === 1);
     const anomaly = this.predictions.filter((p) => p.label === -1);
 
-    const labels = this.predictions.map((p) =>
-      p.timestamp ? new Date(p.timestamp).toLocaleTimeString() : String(p.index)
+    const labels = this.predictions.map((p: any) =>
+      p.LogTime ? new Date(p.LogTime).toLocaleTimeString() : String(p.index)
     );
 
     this.timeChart = new Chart(canvas, {
@@ -186,8 +259,8 @@ export class AppComponent implements OnInit {
         labels,
         datasets: [
           {
-            label: 'Temperature (Normal)',
-            data: this.predictions.map((p) => (p.label === 1  ? p.temperature ?? null : null)),
+            label: 'Sensor Reading (Normal)',
+            data: this.predictions.map((p: any) => (p.label === 1  ? p.LogFloatValue ?? null : null)),
             borderColor: '#3B82F6',
             backgroundColor: 'rgba(59,130,246,0.08)',
             pointRadius: 2,
@@ -195,8 +268,8 @@ export class AppComponent implements OnInit {
             tension: 0.3,
           },
           {
-            label: 'Temperature (Anomaly)',
-            data: this.predictions.map((p) => (p.label === -1 ? p.temperature ?? null : null)),
+            label: 'Sensor Reading (Anomaly)',
+            data: this.predictions.map((p: any) => (p.label === -1 ? p.LogFloatValue ?? null : null)),
             borderColor: 'transparent',
             backgroundColor: '#EF4444',
             pointBackgroundColor: '#EF4444',
@@ -238,7 +311,7 @@ export class AppComponent implements OnInit {
     const canvas = document.getElementById('compareChart') as HTMLCanvasElement;
     if (!canvas || !this.compareData) return;
 
-    const entries = Object.entries(this.compareData.comparison);
+    const entries = this.comparisonEntries;
     const labels  = entries.map(([k]) => this.prettyModel(k));
     const anomaly = entries.map(([, v]) => v.anomalyCount);
     const normal  = entries.map(([, v]) => v.normalCount);
@@ -275,6 +348,23 @@ export class AppComponent implements OnInit {
     if (this.compareChart) { this.compareChart.destroy(); this.compareChart = null; }
   }
 
+  // ── UI Helpers ─────────────────────────────────────────────────────────
+
+  setFilter(filter: 'all' | 'normal' | 'anomaly') {
+    this.currentFilter = filter;
+    this.activeTab = 'results';
+  }
+
+  get filteredPredictions() {
+    if (this.currentFilter === 'normal') {
+      return this.predictions.filter(p => p.label === 1);
+    }
+    if (this.currentFilter === 'anomaly') {
+      return this.predictions.filter(p => p.label === -1);
+    }
+    return this.predictions;
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────
   prettyModel(id: string): string {
     return { isolation_forest: 'Isolation Forest', one_class_svm: 'One-Class SVM', kmeans: 'K-Means' }[id] ?? id;
@@ -283,9 +373,5 @@ export class AppComponent implements OnInit {
   anomalyPct(v: { anomalyCount: number; normalCount: number }): string {
     const total = v.anomalyCount + v.normalCount;
     return total > 0 ? ((v.anomalyCount / total) * 100).toFixed(1) + '%' : '0%';
-  }
-
-  compareEntries(): [string, any][] {
-    return this.compareData ? Object.entries(this.compareData.comparison) : [];
   }
 }

@@ -1,8 +1,11 @@
 export interface SensorReading {
-  temperature: number;
-  humidity: number;
-  sensorId?: string;
-  timestamp?: string;
+  LogFloatValue?: number;
+  LogIntValue?: number;
+  LogTime?: string;
+  ServerTime?: string;
+  LogTypeID?: number;
+  LogSubTypeID?: number;
+  NodeId?: string;
 }
 
 export interface PredictionResult {
@@ -14,6 +17,13 @@ export interface PredictionResult {
   temperature?: number;
   humidity?: number;
   sensorId?: string;
+  LogTime?: string;
+  ServerTime?: string;
+  LogFloatValue?: number;
+  LogIntValue?: number;
+  LogTypeID?: number;
+  LogSubTypeID?: number;
+  NodeId?: string;
 }
 
 export interface PredictionSummary {
