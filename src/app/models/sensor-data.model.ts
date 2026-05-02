@@ -6,6 +6,7 @@ export interface SensorReading {
   LogTypeID?: number;
   LogSubTypeID?: number;
   NodeId?: string;
+  RmsStationId?: number;
 }
 
 export interface PredictionResult {
@@ -24,6 +25,10 @@ export interface PredictionResult {
   LogTypeID?: number;
   LogSubTypeID?: number;
   NodeId?: string;
+  RmsStationId?: number;
+  time_delay_sec?: number;
+  log_hour?: number;
+  warnings?: string[];
 }
 
 export interface PredictionSummary {

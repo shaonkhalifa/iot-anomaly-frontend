@@ -1,5 +1,5 @@
 <!-- ═══════════════════════════════════════════════════════════════
-     IoT Anomaly Detection System — Main Dashboard
+     IoT Anomaly Detection System — Main Layout
 ════════════════════════════════════════════════════════════════ -->
 <div class="app-shell">
 
@@ -8,13 +8,13 @@
     <div class="header-left">
       <div class="logo-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
         </svg>
       </div>
       <div>
-        <h1 class="header-title">IoT Anomaly Detection</h1>
+        <h1 class="header-title">IoT Anomaly Detection Dashboard</h1>
         <p class="header-sub">Unsupervised ML · Industrial Sensor Analysis</p>
       </div>
     </div>
@@ -26,54 +26,54 @@
     </div>
   </header>
 
-  <main class="main-content">
-
-    <!-- ── Upload Panel ──────────────────────────────────────────── -->
-    <section class="panel upload-panel">
-      <h2 class="panel-title">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/>
-          <line x1="12" y1="3" x2="12" y2="15"/>
-        </svg>
-        Upload Sensor Data
-      </h2>
-
-      <!-- Upload Mode Toggle -->
-      <div class="mode-toggle" style="display:flex; gap:10px; margin-bottom: 15px;">
-        <button class="btn" [class.btn-primary]="uploadMode === 'file'" (click)="uploadMode = 'file'">File Upload (CSV/Excel)</button>
-        <button class="btn" [class.btn-primary]="uploadMode === 'json'" (click)="uploadMode = 'json'">Direct JSON Input</button>
+  <main class="main-content" style="padding-top: 1rem;">
+    
+    <!-- ── Upload & Controls Panel ─────────────────────────────────── -->
+    <section class="panel upload-panel" [class.minimized]="hasData">
+      <div *ngIf="!hasData" class="upload-header">
+        <h2 class="panel-title">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Upload Sensor Data
+        </h2>
+      
+        <div class="mode-toggle" style="display:flex; gap:10px; margin-bottom: 15px; align-items: center;">
+          <button class="btn btn-primary btn-sm">File Upload</button>
+          <a href="assets/sample_upload_template.xlsx" download class="template-link" title="Download sample Excel template">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            Sample Template
+          </a>
+        </div>
       </div>
-
-      <!-- File Upload Zone -->
-      <div *ngIf="uploadMode === 'file'"
-        class="drop-zone"
-        [class.active]="isDragOver"
-        [class.has-file]="selectedFile"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave()"
-        (drop)="onDrop($event)"
-        (click)="!selectedFile && fileInput.click()"
-      >
+    
+      <div class="drop-zone" [class.active]="isDragOver" [class.has-file]="selectedFile"
+        (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)"
+        (click)="!selectedFile && fileInput.click()" *ngIf="!hasData">
         <input #fileInput type="file" accept=".csv,.xlsx,.xls" hidden (change)="onFileInput($event)">
-
+    
         <ng-container *ngIf="!selectedFile">
           <div class="drop-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
           <p class="drop-text">Drag & drop your file here</p>
           <p class="drop-sub">or click to browse (.csv, .xlsx, .xls)</p>
         </ng-container>
-
+    
         <ng-container *ngIf="selectedFile">
           <div class="file-info">
             <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
             </svg>
             <div>
               <p class="file-name">{{ selectedFile.name }}</p>
@@ -84,200 +84,238 @@
         </ng-container>
       </div>
 
-      <!-- JSON Input Zone -->
-      <div *ngIf="uploadMode === 'json'" class="json-input-zone" style="margin-bottom: 20px;">
-        <textarea
-          class="form-control"
-          [(ngModel)]="jsonInputText"
-          rows="6"
-          placeholder='[{"LogTime": "2026-01-01 10:40", "LogTypeID": 4, "LogSubTypeID": 1, "LogFloatValue": 32.8}]'
-          style="width: 100%; padding: 10px; background: rgba(15, 23, 42, 0.4); color: #F1F5F9; border: 1px dashed rgba(148, 163, 184, 0.3); border-radius: 8px; font-family: monospace;"
-        ></textarea>
+      <!-- Minimized Upload Header -->
+      <div class="minimized-header" *ngIf="hasData">
+        <div class="minimized-file-info">
+          <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <strong>{{ selectedFile?.name }}</strong>
+          <button class="btn btn-secondary btn-sm" (click)="clearFile()" style="margin-left: 10px; padding: 0.3rem 0.6rem; font-size: 0.85rem;">Change File</button>
+        </div>
       </div>
-
-      <!-- Model selector + actions -->
-      <div class="controls-row">
+    
+      <div class="controls-row" [style.margin-top]="hasData ? '1rem' : '0'">
         <div class="model-select-wrap">
           <label class="select-label">Algorithm</label>
-          <select class="model-select" [(ngModel)]="selectedModel">
+          <select class="model-select" [(ngModel)]="selectedModel" (ngModelChange)="onModelChange()">
             <option *ngFor="let m of availableModels" [value]="m.id">
               {{ m.name }} {{ m.ready ? '' : '(not trained)' }}
             </option>
           </select>
         </div>
-
+    
         <div class="btn-group">
-          <button
-            class="btn btn-primary"
-            [disabled]="(uploadMode === 'file' && !selectedFile) || (uploadMode === 'json' && !jsonInputText.trim()) || isLoading"
-            (click)="uploadMode === 'file' ? analyze() : analyzeJson()"
-          >
+          <button class="btn btn-primary" [disabled]="!selectedFile || isLoading" (click)="analyze()">
             <span *ngIf="!isLoading">
               <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              Analyze
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg> Analyze
             </span>
             <span *ngIf="isLoading" class="spinner"></span>
           </button>
-
-          <button
-            *ngIf="uploadMode === 'file'"
-            class="btn btn-secondary"
-            [disabled]="!selectedFile || isComparing"
-            (click)="compareAll()"
-          >
+    
+          <button class="btn btn-secondary" [disabled]="!selectedFile || isComparing" (click)="compareAll()">
             <span *ngIf="!isComparing">
               <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-              </svg>
-              Compare All Models
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg> Compare All Models
             </span>
             <span *ngIf="isComparing" class="spinner"></span>
           </button>
         </div>
       </div>
-
-      <!-- Error message -->
+    
       <div *ngIf="errorMsg" class="error-toast">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="error-icon">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         {{ errorMsg }}
       </div>
     </section>
 
-    <!-- ── Summary Cards ─────────────────────────────────────────── -->
-    <section class="summary-row" *ngIf="summary">
-      <div class="stat-card total" (click)="setFilter('all')" [class.active-filter]="currentFilter==='all'" style="cursor: pointer;">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
-          </svg>
-        </div>
-        <div>
-          <p class="stat-label">Total Readings</p>
-          <p class="stat-value">{{ summary.total | number }}</p>
-        </div>
+    <!-- ── Single-Model Dashboard ─────────────────────────────────── -->
+    <ng-container *ngIf="predictions.length > 0 && !compareData">
+      <div class="dashboard-header" style="margin-top: 2rem;">
+        <h2>Analytics Overview</h2>
+        <span class="model-badge">Generated by: {{ prettyModel(selectedModel) }}</span>
       </div>
+    
+      <!-- Visual Dashboard Charts -->
+      <section class="charts-row">
+        <div class="panel dashboard-panel">
+          <h3>Distribution Ratio</h3>
+          <div class="chart-container pie-container">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+    
+        <div class="panel dashboard-panel">
+          <h3>Anomalies by Sensor Type</h3>
+          <div class="chart-container">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Summary Cards -->
+      <section class="summary-row" *ngIf="summary">
+        <div class="stat-card total" (click)="setFilter('all')" [class.active-filter]="currentFilter==='all'" style="cursor: pointer;">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+            </svg>
+          </div>
+          <div>
+            <p class="stat-label">Total Readings</p>
+            <p class="stat-value">{{ summary.total | number }}</p>
+          </div>
+        </div>
+    
+        <div class="stat-card normal" (click)="setFilter('normal')" [class.active-filter]="currentFilter==='normal'" style="cursor: pointer;">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div>
+            <p class="stat-label">Normal Readings</p>
+            <p class="stat-value">{{ summary.normal | number }}</p>
+            <p class="stat-pct">{{ (100 - summary.anomalyPct).toFixed(1) }}%</p>
+          </div>
+        </div>
+    
+        <div class="stat-card anomaly" (click)="setFilter('anomaly')" [class.active-filter]="currentFilter==='anomaly'" style="cursor: pointer;">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div>
+            <p class="stat-label">Anomalies Detected</p>
+            <p class="stat-value anomaly-val">{{ summary.anomaly | number }}</p>
+            <p class="stat-pct anomaly-pct">{{ summary.anomalyPct.toFixed(1) }}%</p>
+          </div>
+        </div>
+      </section>
 
-      <div class="stat-card normal" (click)="setFilter('normal')" [class.active-filter]="currentFilter==='normal'" style="cursor: pointer;">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
+      <!-- Detailed Analysis -->
+      <section class="panel results-panel">
+        <div class="tab-bar">
+          <div class="tab-btn" [class.active]="activeTab==='chart'" (click)="activeTab='chart'; switchToChart()">
+            📈 Time-Series Chart
+          </div>
+          <div class="tab-btn" [class.active]="activeTab==='results'" (click)="activeTab='results'">
+            📋 Data Table
+          </div>
         </div>
-        <div>
-          <p class="stat-label">Normal</p>
-          <p class="stat-value">{{ summary.normal | number }}</p>
-          <p class="stat-pct">{{ (100 - summary.anomalyPct).toFixed(1) }}%</p>
+      
+        <div class="tab-content" *ngIf="activeTab==='chart'">
+          <div class="chart-wrap">
+            <canvas id="timeChart"></canvas>
+          </div>
+          <p class="chart-legend">
+            <span class="dot blue"></span> Normal readings &nbsp;
+            <span class="dot red"></span> Anomalies detected
+          </p>
         </div>
-      </div>
-
-      <div class="stat-card anomaly" (click)="setFilter('anomaly')" [class.active-filter]="currentFilter==='anomaly'" style="cursor: pointer;">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
+      
+        <div class="tab-content table-tab" *ngIf="activeTab==='results'">
+          <div class="table-header">
+            <span class="table-count">{{ filteredPredictions.length }} rows {{ currentFilter !== 'all' ? '(Filtered)' : '' }}</span>
+            <div class="table-toolbar">
+              <span class="anomaly-count">{{ summary?.anomaly }} anomalies</span>
+              <div class="export-group">
+                <button class="btn btn-export" (click)="exportExcel('all')" title="Export all results as Excel">
+                  <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg> Export All
+                </button>
+                <button class="btn btn-export btn-export-anomaly" (click)="exportExcel('anomaly')">⚠️ Export Anomalies</button>
+                <button class="btn btn-export btn-export-normal" (click)="exportExcel('normal')">✅ Export Normal</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th class="w-dev">Device ID</th>
+                  <th class="w-time">Timestamp</th>
+                  <th>Sensor Type</th>
+                  <th class="w-num">Float Value</th>
+                  <th class="w-num">Int Value</th>
+                  <th class="w-num">Net Delay</th>
+                  <th>Status</th>
+                  <th>Score</th>
+                  <th class="w-warn">Warnings</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of filteredPredictions; let i = index" [class.anomaly-row]="row.label === -1" [class.warning-row]="row.warnings && row.warnings.length > 0">
+                  <td class="idx">{{ row.index + 1 }}</td>
+                  <td class="device-id">
+                    <span class="device-badge" *ngIf="row['RmsStationId'] != null"><span class="device-dot"></span>{{ row['RmsStationId'] }}</span>
+                    <span *ngIf="row['RmsStationId'] == null" class="no-data">—</span>
+                  </td>
+                  <td class="ts">
+                    {{ row['LogTime'] ? (row['LogTime'] | date:'medium') : '—' }}
+                    <span class="future-badge" *ngIf="row.warnings && row.warnings.length > 0 && row.warnings[0].includes('Future')">⏰</span>
+                  </td>
+                  <td>{{ getSensorTypeName(row['LogTypeID'], row['LogSubTypeID']) }}</td>
+                  <td class="num">{{ row['LogFloatValue'] != null ? row['LogFloatValue'].toFixed(2) : '—' }}</td>
+                  <td class="num">{{ row['LogIntValue'] != null ? row['LogIntValue'].toFixed(2) : '—' }}</td>
+                  <td class="num">
+                    <span class="delay-badge"
+                      [class.delay-ok]="row['time_delay_sec'] != null && row['time_delay_sec'] <= 5"
+                      [class.delay-warn]="row['time_delay_sec'] != null && row['time_delay_sec'] > 5 && row['time_delay_sec'] <= 30"
+                      [class.delay-critical]="row['time_delay_sec'] != null && row['time_delay_sec'] > 30"
+                      *ngIf="row['time_delay_sec'] != null">
+                      {{ row['time_delay_sec'] >= 0 ? '+' : '' }}{{ row['time_delay_sec'].toFixed(1) }}s
+                    </span>
+                    <span *ngIf="row['time_delay_sec'] == null" class="no-data">—</span>
+                  </td>
+                  <td>
+                    <span class="badge" [class.badge-normal]="row.label===1" [class.badge-anomaly]="row.label===-1">
+                      {{ row.prediction }}
+                    </span>
+                  </td>
+                  <td class="num score">{{ row.score.toFixed(4) }}</td>
+                  <td class="warnings-cell">
+                    <div *ngIf="row.warnings && row.warnings.length > 0" class="warning-badges">
+                      <span class="badge badge-warning" *ngFor="let w of row.warnings" [title]="w">⚠️ {{ w }}</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div>
-          <p class="stat-label">Anomalies</p>
-          <p class="stat-value anomaly-val">{{ summary.anomaly | number }}</p>
-          <p class="stat-pct anomaly-pct">{{ summary.anomalyPct.toFixed(1) }}%</p>
-        </div>
-      </div>
-
-      <div class="stat-card model-card">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 015.07 19.07"/>
-          </svg>
-        </div>
-        <div>
-          <p class="stat-label">Model Used</p>
-          <p class="stat-value model-name">{{ prettyModel(selectedModel) }}</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Single-Model Results ─────────────────────────────────── -->
-    <section class="panel results-panel" *ngIf="predictions.length > 0 && !compareData">
-
-      <div class="tab-bar">
-        <button class="tab-btn" [class.active]="activeTab==='chart'" (click)="activeTab='chart'; renderTimeChart()">
-          📈 Time-Series Chart
-        </button>
-        <button class="tab-btn" [class.active]="activeTab==='results'" (click)="activeTab='results'">
-          📋 Data Table
-        </button>
-      </div>
-
-      <!-- Time-series chart -->
-      <div class="tab-content" *ngIf="activeTab==='chart'">
-        <div class="chart-wrap">
-          <canvas id="timeChart"></canvas>
-        </div>
-        <p class="chart-legend">
-          <span class="dot blue"></span> Normal readings &nbsp;
-          <span class="dot red"></span> Anomalies detected
-        </p>
-      </div>
-
-      <!-- Data table -->
-      <div class="tab-content table-tab" *ngIf="activeTab==='results'">
-        <div class="table-header">
-          <span class="table-count">{{ filteredPredictions.length }} rows {{ currentFilter !== 'all' ? '(Filtered)' : '' }}</span>
-          <span class="anomaly-count">{{ summary?.anomaly }} anomalies</span>
-        </div>
-        <div class="table-scroll">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Timestamp</th>
-                <th>Sensor Type</th>
-                <th>Float Value</th>
-                <th>Int Value</th>
-                <th>Status</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of filteredPredictions; let i = index" [class.anomaly-row]="row.label === -1">
-                <td class="idx">{{ row.index + 1 }}</td>
-                <td class="ts">{{ row['LogTime'] ? (row['LogTime'] | date:'medium') : '—' }}</td>
-                <td>{{ getSensorTypeName(row['LogTypeID'], row['LogSubTypeID']) }}</td>
-                <td class="num">{{ row['LogFloatValue'] != null ? row['LogFloatValue'].toFixed(2) : '—' }}</td>
-                <td class="num">{{ row['LogIntValue']    != null ? row['LogIntValue'].toFixed(2)    : '—' }}</td>
-                <td>
-                  <span class="badge" [class.badge-normal]="row.label===1" [class.badge-anomaly]="row.label===-1">
-                    {{ row.prediction }}
-                  </span>
-                </td>
-                <td class="num score">{{ row.score.toFixed(4) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </section>
+      </section>
+    </ng-container>
 
     <!-- ── Model Comparison Results ────────────────────────────────── -->
-    <section class="panel results-panel" *ngIf="compareData">
-      <div class="tab-bar">
-        <button class="tab-btn active">
-          📊 Model Comparison
-        </button>
+    <section class="panel results-panel compare-panel" *ngIf="compareData">
+      <div style="background: rgba(15, 23, 42, 0.6); padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);">
+        <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary); text-align: center;">📊 Model Comparison Dashboard</h2>
       </div>
-
       <div class="tab-content">
         <div class="compare-summary-header">
           <h3 class="compare-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">
-              <path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>
+              <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" />
             </svg>
             Comparison across {{ compareData.totalRecords | number }} records
           </h3>
@@ -309,24 +347,12 @@
       </div>
     </section>
 
-    <!-- ── Empty State ───────────────────────────────────────────── -->
-    <section class="empty-state" *ngIf="predictions.length === 0 && !compareData && !isLoading">
-      <div class="empty-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-          <path d="M3 3l4 8 5-5 4 6 3-3"/>
-          <circle cx="20" cy="20" r="3"/>
-        </svg>
-      </div>
-      <h3>No Results Yet</h3>
-      <p>Upload an industrial sensor CSV file and click <strong>Analyze</strong> to detect anomalies.</p>
-      <p class="hint">CSV columns: <code>timestamp, temperature, humidity</code></p>
-    </section>
-
   </main>
 
   <footer class="footer">
     <p>MSc Project · IoT Anomaly Detection System · Unsupervised ML</p>
     <p>Isolation Forest · One-Class SVM · K-Means</p>
+    <p class="hint">Developed By: <code>Md.Shaon Khalifa</code></p>
   </footer>
 
 </div>

@@ -1,0 +1,139 @@
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  max-width: 600px;
+  margin: 4rem auto;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+.empty-state h3 {
+  color: var(--text);
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h2 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.model-badge {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--primary-glow);
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  font-weight: 500;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(51, 65, 85, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+}
+
+.stat-icon svg { width: 24px; height: 24px; }
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 0.3rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.stat-pct {
+  font-size: 0.85rem;
+  margin: 0.2rem 0 0 0;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.stat-card.anomaly { border-color: rgba(239, 68, 68, 0.3); }
+.stat-card.anomaly .stat-icon { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+.stat-card.anomaly .anomaly-val, .stat-card.anomaly .anomaly-pct { color: #EF4444; }
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.dashboard-panel h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+.chart-container {
+  height: 300px;
+  position: relative;
+  width: 100%;
+}
+
+.pie-container {
+  height: 250px;
+}
+
+.dashboard-footer-action {
+  text-align: center;
+  margin-top: 2rem;
+  padding-bottom: 2rem;
+}

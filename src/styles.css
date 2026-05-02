@@ -161,6 +161,21 @@ body {
 .drop-text { font-size: 1rem; font-weight: 500; color: var(--text-primary); }
 .drop-sub  { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem; }
 
+.template-link {
+  display: inline-flex; align-items: center;
+  font-size: 0.78rem; color: var(--blue-light);
+  text-decoration: none; margin-left: auto;
+  padding: 0.35rem 0.75rem;
+  border: 1px dashed rgba(96, 165, 250, 0.3);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+.template-link:hover {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: white;
+}
+
 .file-info {
   display: flex; align-items: center; gap: 1rem; justify-content: center;
 }
@@ -356,6 +371,135 @@ body {
 }
 .badge-normal  { background: var(--green-dim);  color: var(--green); }
 .badge-anomaly { background: var(--red-dim);    color: var(--red-light); }
+.badge-warning {
+  background: rgba(245,158,11,0.15);
+  color: #F59E0B;
+  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+  display: inline-block;
+  margin: 0.15rem 0;
+}
+
+.warning-row {
+  background: rgba(245,158,11,0.04) !important;
+  border-left: 3px solid var(--amber) !important;
+}
+.warning-row:hover { background: rgba(245,158,11,0.08) !important; }
+
+.warnings-cell { max-width: 260px; }
+.warning-badges { display: flex; flex-direction: column; gap: 0.2rem; }
+
+.future-badge {
+  font-size: 0.7rem;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+
+/* ── Device ID Badge ─────────────────────────────────────────── */
+.device-id { white-space: nowrap; }
+.device-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #A5B4FC;
+  letter-spacing: 0.02em;
+}
+.device-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #818CF8;
+  box-shadow: 0 0 4px rgba(129,140,248,0.6);
+  flex-shrink: 0;
+}
+.no-data { color: var(--text-muted); }
+
+/* ── Network Delay Badges ────────────────────────────────────── */
+.delay-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.delay-ok {
+  background: var(--green-dim);
+  color: var(--green);
+}
+.delay-warn {
+  background: rgba(245,158,11,0.15);
+  color: #F59E0B;
+}
+.delay-critical {
+  background: var(--red-dim);
+  color: var(--red-light);
+  animation: pulse-delay 2s ease-in-out infinite;
+}
+@keyframes pulse-delay {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+/* ── Table Toolbar ───────────────────────────────────────────── */
+.table-toolbar {
+  display: flex; align-items: center; gap: 1rem;
+}
+
+.btn-export {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: var(--radius-sm);
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.btn-export:hover {
+  background: rgba(16,185,129,0.2);
+  border-color: var(--green);
+  box-shadow: 0 0 12px rgba(16,185,129,0.2);
+  transform: translateY(-1px);
+}
+.btn-export .btn-icon-svg {
+  width: 14px; height: 14px;
+}
+
+.export-group {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+}
+
+.btn-export-anomaly {
+  background: rgba(239,68,68,0.1);
+  border-color: rgba(239,68,68,0.3);
+  color: var(--red-light);
+}
+.btn-export-anomaly:hover {
+  background: rgba(239,68,68,0.2);
+  border-color: var(--red);
+  box-shadow: 0 0 12px rgba(239,68,68,0.2);
+  transform: translateY(-1px);
+}
+
+.btn-export-normal {
+  background: rgba(16,185,129,0.1);
+  border-color: rgba(16,185,129,0.3);
+  color: var(--green);
+}
+.btn-export-normal:hover {
+  background: rgba(16,185,129,0.2);
+  border-color: var(--green);
+  box-shadow: 0 0 12px rgba(16,185,129,0.2);
+  transform: translateY(-1px);
+}
 
 /* ── Compare Stats ────────────────────────────────────────────── */
 .compare-stats {

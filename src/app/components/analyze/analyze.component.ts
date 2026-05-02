@@ -1,27 +1,26 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { ApiService } from './services/api.service';
-import { ModelInfo, PredictionResult, CompareResponse, PredictionSummary } from './models/sensor-data.model';
+import { ApiService } from '../../services/api.service';
+import { DataStateService } from '../../services/data-state.service';
+import { ModelInfo, PredictionResult, CompareResponse, PredictionSummary } from '../../models/sensor-data.model';
 import { Chart, registerables } from 'chart.js';
 import * as XLSX from 'xlsx';
 
 Chart.register(...registerables);
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-analyze',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
+  imports: [CommonModule, FormsModule],
+  templateUrl: './analyze.component.html',
+  styleUrls: ['./analyze.component.css']
 })
-export class AppComponent implements OnInit {
+export class AnalyzeComponent implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  healthStatus: 'ok' | 'degraded' | 'unknown' = 'unknown';
-
   uploadMode: 'file' | 'json' = 'file';
+  jsonInputText: string = '';
   selectedFile: File | null = null;
   selectedModel: string = 'isolation_forest';
   isDragOver = false;
@@ -40,39 +39,43 @@ export class AppComponent implements OnInit {
   compareData: CompareResponse | null = null;
   comparisonEntries: [string, any][] = [];
 
-  activeTab: 'chart' | 'results' = 'chart';
+  activeTab: 'results' | 'chart' | 'compare' = 'chart';
   currentFilter: 'all' | 'normal' | 'anomaly' = 'all';
-
-  get hasData(): boolean {
-    return this.predictions.length > 0 || this.compareData !== null;
-  }
 
   private timeChart: Chart | null = null;
   private compareChart: Chart | null = null;
-  private pieChart: Chart | null = null;
-  private barChart: Chart | null = null;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private dataState: DataStateService) {}
 
   ngOnInit() {
-    this.checkHealth();
-  }
-
-  checkHealth() {
     this.api.health().subscribe({
       next: (h) => {
-        this.healthStatus = h.status === 'ok' ? 'ok' : 'degraded';
         if (h.modelsReady) {
           this.availableModels = this.availableModels.map((m) => ({
             ...m,
             ready: h.modelsReady[m.id] ?? false,
           }));
         }
-      },
-      error: () => {
-        this.healthStatus = 'degraded';
-      },
+      }
     });
+
+    // Restore state if coming back from Dashboard
+    this.dataState.predictions$.subscribe(p => {
+      this.predictions = p;
+      if (p.length > 0 && !this.compareData) {
+        setTimeout(() => this.renderTimeChart(), 50);
+      }
+    });
+    this.dataState.summary$.subscribe(s => this.summary = s);
+    this.dataState.compareData$.subscribe(c => {
+      this.compareData = c;
+      if (c) {
+        this.comparisonEntries = Object.entries(c.comparison);
+        setTimeout(() => this.renderCompareChart(), 50);
+      }
+    });
+    this.dataState.activeTab$.subscribe(t => this.activeTab = t);
+    this.dataState.selectedModel$.subscribe(m => this.selectedModel = m);
   }
 
   // ── File Handling ──────────────────────────────────────────────────────
@@ -99,23 +102,18 @@ export class AppComponent implements OnInit {
     }
     this.selectedFile = file;
     this.errorMsg = null;
-    this.clearResults();
+    this.dataState.clearData();
+    this.destroyCharts();
   }
 
   clearFile() {
     this.selectedFile = null;
     this.errorMsg = null;
-    this.clearResults();
-    if (this.fileInput && this.fileInput.nativeElement) {
-      this.fileInput.nativeElement.value = ''; 
-    }
-  }
-
-  clearResults() {
-    this.predictions = [];
-    this.summary = null;
-    this.compareData = null;
+    this.dataState.clearData();
     this.destroyCharts();
+    if (this.fileInput && this.fileInput.nativeElement) {
+      this.fileInput.nativeElement.value = ''; // FIX: Allow same file re-upload
+    }
   }
 
   // ── Analyze ────────────────────────────────────────────────────────────
@@ -123,18 +121,13 @@ export class AppComponent implements OnInit {
     if (!this.selectedFile) { this.errorMsg = 'Please select a CSV file first.'; return; }
     this.isLoading = true;
     this.errorMsg = null;
-    this.clearResults();
+    this.dataState.clearData();
+    this.destroyCharts();
 
     this.api.predictUpload(this.selectedModel, this.selectedFile).subscribe({
       next: (res) => {
         this.isLoading = false;
-        this.predictions = res.predictions;
-        this.summary = res.summary;
-        this.activeTab = 'chart';
-        setTimeout(() => {
-          this.renderTimeChart();
-          this.renderDashboardCharts();
-        }, 100);
+        this.dataState.setAnalyzeData(res.predictions, res.summary, this.selectedModel);
       },
       error: (err) => {
         this.isLoading = false;
@@ -151,35 +144,28 @@ export class AppComponent implements OnInit {
 
   // ── Compare all models ─────────────────────────────────────────────────
   compareAll() {
-    if (!this.selectedFile) {
-      this.errorMsg = 'Please select a CSV file first.';
-      return;
-    }
     this.isComparing = true;
     this.errorMsg = null;
-    this.compareData = null;
+    this.dataState.clearData();
+    this.destroyCharts();
 
-    this.api.compareUpload(this.selectedFile).subscribe({
-      next: (cmp) => {
+    if (this.uploadMode === 'file') {
+      if (!this.selectedFile) {
+        this.errorMsg = 'Please select a CSV file first.';
         this.isComparing = false;
-        this.compareData = cmp;
-        this.comparisonEntries = Object.entries(cmp.comparison);
-        setTimeout(() => this.renderCompareChart(), 100);
-      },
-      error: (err) => {
-        this.isComparing = false;
-        this.errorMsg = err.error?.error ?? 'Comparison failed.';
-      },
-    });
-  }
-
-  backToAnalysis() {
-    this.compareData = null;
-    this.activeTab = 'chart';
-    setTimeout(() => {
-      this.renderTimeChart();
-      this.renderDashboardCharts();
-    }, 50);
+        return;
+      }
+      this.api.compareUpload(this.selectedFile).subscribe({
+        next: (cmp) => {
+          this.isComparing = false;
+          this.dataState.setCompareData(cmp);
+        },
+        error: (err) => {
+          this.isComparing = false;
+          this.errorMsg = err.error?.error ?? 'Comparison failed.';
+        },
+      });
+    }
   }
 
   // ── Sensor Type Mapping ────────────────────────────────────────────────
@@ -199,59 +185,6 @@ export class AppComponent implements OnInit {
     setTimeout(() => this.renderTimeChart(), 50);
   }
 
-  renderDashboardCharts() {
-    const pieCanvas = document.getElementById('pieChart') as HTMLCanvasElement;
-    const barCanvas = document.getElementById('barChart') as HTMLCanvasElement;
-
-    if (pieCanvas && this.summary) {
-      this.pieChart = new Chart(pieCanvas, {
-        type: 'doughnut',
-        data: {
-          labels: ['Normal', 'Anomaly'],
-          datasets: [{
-            data: [this.summary.normal, this.summary.anomaly],
-            backgroundColor: ['rgba(59,130,246,0.8)', 'rgba(239,68,68,0.8)'],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { color: '#CBD5E1' } } }
-        }
-      });
-    }
-
-    if (barCanvas && this.predictions.length > 0) {
-      const anomalies = this.predictions.filter(p => p.label === -1);
-      const typeCounts: { [key: string]: number } = {};
-      anomalies.forEach(a => {
-        const typeName = this.getSensorTypeName(a.LogTypeID, a.LogSubTypeID);
-        typeCounts[typeName] = (typeCounts[typeName] || 0) + 1;
-      });
-
-      this.barChart = new Chart(barCanvas, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(typeCounts).length ? Object.keys(typeCounts) : ['No Anomalies'],
-          datasets: [{
-            label: 'Anomaly Count',
-            data: Object.keys(typeCounts).length ? Object.values(typeCounts) : [0],
-            backgroundColor: 'rgba(245,158,11,0.8)',
-            borderRadius: 4
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: '#94A3B8' }, grid: { display: false } },
-            y: { ticks: { color: '#94A3B8', stepSize: 1 }, grid: { color: 'rgba(51,65,85,0.5)' } }
-          }
-        }
-      });
-    }
-  }
-
   renderTimeChart() {
     const canvas = document.getElementById('timeChart') as HTMLCanvasElement;
     if (!canvas || this.predictions.length === 0) return;
@@ -269,23 +202,37 @@ export class AppComponent implements OnInit {
           {
             label: 'Sensor Reading (Normal)',
             data: this.predictions.map((p: any) => (p.label === 1  ? p.LogFloatValue ?? null : null)),
-            borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.08)',
-            pointRadius: 2, pointHoverRadius: 5, tension: 0.3,
+            borderColor: '#3B82F6',
+            backgroundColor: 'rgba(59,130,246,0.08)',
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            tension: 0.3,
           },
           {
             label: 'Sensor Reading (Anomaly)',
             data: this.predictions.map((p: any) => (p.label === -1 ? p.LogFloatValue ?? null : null)),
-            borderColor: 'transparent', backgroundColor: '#EF4444',
-            pointBackgroundColor: '#EF4444', pointRadius: 7, pointHoverRadius: 9, showLine: false,
+            borderColor: 'transparent',
+            backgroundColor: '#EF4444',
+            pointBackgroundColor: '#EF4444',
+            pointRadius: 7,
+            pointHoverRadius: 9,
+            showLine: false,
           },
         ],
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
+        responsive: true,
+        maintainAspectRatio: false,
         interaction: { intersect: false, mode: 'index' },
         plugins: {
           legend: { labels: { color: '#CBD5E1' } },
-          tooltip: { backgroundColor: '#1E293B', borderColor: '#334155', borderWidth: 1, titleColor: '#F1F5F9', bodyColor: '#94A3B8' },
+          tooltip: {
+            backgroundColor: '#1E293B',
+            borderColor: '#334155',
+            borderWidth: 1,
+            titleColor: '#F1F5F9',
+            bodyColor: '#94A3B8',
+          },
         },
         scales: {
           x: { ticks: { color: '#64748B', maxTicksLimit: 20 }, grid: { color: 'rgba(51,65,85,0.5)' } },
@@ -316,7 +263,8 @@ export class AppComponent implements OnInit {
         ],
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend:  { labels: { color: '#CBD5E1' } },
           tooltip: { backgroundColor: '#1E293B', borderColor: '#334155', borderWidth: 1, titleColor: '#F1F5F9', bodyColor: '#94A3B8' },
@@ -332,8 +280,6 @@ export class AppComponent implements OnInit {
   destroyCharts() {
     if (this.timeChart)    { this.timeChart.destroy();    this.timeChart    = null; }
     if (this.compareChart) { this.compareChart.destroy(); this.compareChart = null; }
-    if (this.pieChart)     { this.pieChart.destroy();     this.pieChart     = null; }
-    if (this.barChart)     { this.barChart.destroy();     this.barChart     = null; }
   }
 
   // ── UI Helpers ─────────────────────────────────────────────────────────
