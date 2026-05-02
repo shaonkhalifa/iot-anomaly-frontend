@@ -316,7 +316,7 @@ export class AnalyzeComponent implements OnInit {
       '#': row.index + 1,
       'Device ID': row.RmsStationId ?? '',
       'Timestamp': row.LogTime ? new Date(row.LogTime).toLocaleString() : '',
-      'Sensor Type': this.getSensorTypeName(row.LogTypeID, row.LogSubTypeID),
+      'Sensor Type': this.getSensorTypeName(row.LogType, row.LogSubType),
       'Float Value': row.LogFloatValue != null ? Number(row.LogFloatValue.toFixed(2)) : '',
       'Int Value': row.LogIntValue != null ? Number(row.LogIntValue.toFixed(2)) : '',
       'Net Delay (s)': row.time_delay_sec != null ? Number(row.time_delay_sec.toFixed(1)) : '',

@@ -31,8 +31,8 @@ export class AppComponent implements OnInit {
 
   availableModels: ModelInfo[] = [
     { id: 'isolation_forest', name: 'Isolation Forest', ready: true },
-    { id: 'one_class_svm',    name: 'One-Class SVM',   ready: true },
-    { id: 'kmeans',           name: 'K-Means',          ready: true },
+    { id: 'one_class_svm', name: 'One-Class SVM', ready: true },
+    { id: 'kmeans', name: 'K-Means', ready: true },
   ];
 
   predictions: PredictionResult[] = [];
@@ -52,7 +52,7 @@ export class AppComponent implements OnInit {
   private pieChart: Chart | null = null;
   private barChart: Chart | null = null;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService) { }
 
   ngOnInit() {
     this.checkHealth();
@@ -77,7 +77,7 @@ export class AppComponent implements OnInit {
 
   // ── File Handling ──────────────────────────────────────────────────────
   onDragOver(e: DragEvent) { e.preventDefault(); this.isDragOver = true; }
-  onDragLeave()            { this.isDragOver = false; }
+  onDragLeave() { this.isDragOver = false; }
 
   onDrop(e: DragEvent) {
     e.preventDefault();
@@ -107,7 +107,7 @@ export class AppComponent implements OnInit {
     this.errorMsg = null;
     this.clearResults();
     if (this.fileInput && this.fileInput.nativeElement) {
-      this.fileInput.nativeElement.value = ''; 
+      this.fileInput.nativeElement.value = '';
     }
   }
 
@@ -225,7 +225,7 @@ export class AppComponent implements OnInit {
       const anomalies = this.predictions.filter(p => p.label === -1);
       const typeCounts: { [key: string]: number } = {};
       anomalies.forEach(a => {
-        const typeName = this.getSensorTypeName(a.LogTypeID, a.LogSubTypeID);
+        const typeName = this.getSensorTypeName(a.LogType, a.LogSubType);
         typeCounts[typeName] = (typeCounts[typeName] || 0) + 1;
       });
 
@@ -268,7 +268,7 @@ export class AppComponent implements OnInit {
         datasets: [
           {
             label: 'Sensor Reading (Normal)',
-            data: this.predictions.map((p: any) => (p.label === 1  ? p.LogFloatValue ?? null : null)),
+            data: this.predictions.map((p: any) => (p.label === 1 ? p.LogFloatValue ?? null : null)),
             borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.08)',
             pointRadius: 2, pointHoverRadius: 5, tension: 0.3,
           },
@@ -300,9 +300,9 @@ export class AppComponent implements OnInit {
     if (!canvas || !this.compareData) return;
 
     const entries = this.comparisonEntries;
-    const labels  = entries.map(([k]) => this.prettyModel(k));
+    const labels = entries.map(([k]) => this.prettyModel(k));
     const anomaly = entries.map(([, v]) => v.anomalyCount);
-    const normal  = entries.map(([, v]) => v.normalCount);
+    const normal = entries.map(([, v]) => v.normalCount);
 
     if (this.compareChart) { this.compareChart.destroy(); }
 
@@ -311,14 +311,14 @@ export class AppComponent implements OnInit {
       data: {
         labels,
         datasets: [
-          { label: 'Normal',  data: normal,  backgroundColor: 'rgba(59,130,246,0.75)',  borderRadius: 6 },
-          { label: 'Anomaly', data: anomaly, backgroundColor: 'rgba(239,68,68,0.75)',   borderRadius: 6 },
+          { label: 'Normal', data: normal, backgroundColor: 'rgba(59,130,246,0.75)', borderRadius: 6 },
+          { label: 'Anomaly', data: anomaly, backgroundColor: 'rgba(239,68,68,0.75)', borderRadius: 6 },
         ],
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-          legend:  { labels: { color: '#CBD5E1' } },
+          legend: { labels: { color: '#CBD5E1' } },
           tooltip: { backgroundColor: '#1E293B', borderColor: '#334155', borderWidth: 1, titleColor: '#F1F5F9', bodyColor: '#94A3B8' },
         },
         scales: {
@@ -330,10 +330,10 @@ export class AppComponent implements OnInit {
   }
 
   destroyCharts() {
-    if (this.timeChart)    { this.timeChart.destroy();    this.timeChart    = null; }
+    if (this.timeChart) { this.timeChart.destroy(); this.timeChart = null; }
     if (this.compareChart) { this.compareChart.destroy(); this.compareChart = null; }
-    if (this.pieChart)     { this.pieChart.destroy();     this.pieChart     = null; }
-    if (this.barChart)     { this.barChart.destroy();     this.barChart     = null; }
+    if (this.pieChart) { this.pieChart.destroy(); this.pieChart = null; }
+    if (this.barChart) { this.barChart.destroy(); this.barChart = null; }
   }
 
   // ── UI Helpers ─────────────────────────────────────────────────────────
@@ -383,7 +383,7 @@ export class AppComponent implements OnInit {
     ws['!cols'] = [{ wch: 5 }, { wch: 12 }, { wch: 22 }, { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 40 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    const fileName = `anomaly_predictions_${filter}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    const fileName = `anomaly_predictions_${filter}_${new Date().toISOString().slice(0, 10)}.xlsx`;
     XLSX.writeFile(wb, fileName);
   }
 }

@@ -167,7 +167,7 @@
               <span class="future-badge"
                 *ngIf="row.warnings && row.warnings.length > 0 && row.warnings[0].includes('Future')">⏰</span>
             </td>
-            <td>{{ getSensorTypeName(row['LogTypeID'], row['LogSubTypeID']) }}</td>
+            <td>{{ getSensorTypeName(row['LogType'], row['LogSubType']) }}</td>
             <td class="num">{{ row['LogFloatValue'] != null ? row['LogFloatValue'].toFixed(2) : '—' }}</td>
             <td class="num">{{ row['LogIntValue'] != null ? row['LogIntValue'].toFixed(2) : '—' }}</td>
             <td class="num">

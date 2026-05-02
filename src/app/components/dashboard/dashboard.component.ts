@@ -76,7 +76,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const anomalies = this.predictions.filter(p => p.label === -1);
       const typeCounts: { [key: string]: number } = {};
       anomalies.forEach(a => {
-        const typeName = this.getSensorTypeName(a.LogTypeID, a.LogSubTypeID);
+        const typeName = this.getSensorTypeName(a.LogType, a.LogSubType);
         typeCounts[typeName] = (typeCounts[typeName] || 0) + 1;
       });
 

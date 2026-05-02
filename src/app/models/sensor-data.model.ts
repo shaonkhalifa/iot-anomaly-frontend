@@ -22,8 +22,8 @@ export interface PredictionResult {
   ServerTime?: string;
   LogFloatValue?: number;
   LogIntValue?: number;
-  LogTypeID?: number;
-  LogSubTypeID?: number;
+  LogType?: number;
+  LogSubType?: number;
   NodeId?: string;
   RmsStationId?: number;
   time_delay_sec?: number;
